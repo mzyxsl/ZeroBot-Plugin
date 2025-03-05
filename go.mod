@@ -12,7 +12,7 @@ require (
 	github.com/FloatTech/sqlite v1.7.1
 	github.com/FloatTech/ttl v0.0.0-20240716161252-965925764562
 	github.com/FloatTech/zbpctrl v1.7.0
-	github.com/FloatTech/zbputils v1.7.2-0.20250218141621-395d42447fcd
+	github.com/FloatTech/zbputils v1.7.2-0.20250222055844-5d403aa9cecf
 	github.com/RomiChan/syncx v0.0.0-20240418144900-b7402ffdebc7
 	github.com/RomiChan/websocket v1.4.3-0.20220227141055-9b2c6168c9c5
 	github.com/antchfx/htmlquery v1.3.4
@@ -21,7 +21,7 @@ require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/fumiama/ahsai v0.1.0
 	github.com/fumiama/cron v1.3.0
-	github.com/fumiama/deepinfra v0.0.0-20250214082557-71569e85d503
+	github.com/fumiama/deepinfra v0.0.0-20250222123807-c64d9d26d2f8
 	github.com/fumiama/go-base16384 v1.7.0
 	github.com/fumiama/go-registry v0.2.7
 	github.com/fumiama/gotracemoe v0.0.3
@@ -44,9 +44,9 @@ require (
 	github.com/wcharczuk/go-chart/v2 v2.1.2
 	github.com/wdvxdr1123/ZeroBot v1.8.0
 	gitlab.com/gomidi/midi/v2 v2.1.7
-	golang.org/x/image v0.21.0
-	golang.org/x/sys v0.29.0
-	golang.org/x/text v0.21.0
+	golang.org/x/image v0.24.0
+	golang.org/x/sys v0.30.0
+	golang.org/x/text v0.22.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 

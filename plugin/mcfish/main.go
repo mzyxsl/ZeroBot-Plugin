@@ -29,7 +29,7 @@ type fishdb struct {
 const FishLimit = 50
 
 // version 规则版本号
-const version = "5.6.1"
+const version = "5.6.2"
 
 // 各物品信息
 type jsonInfo struct {
@@ -625,15 +625,19 @@ func (sql *fishdb) refreshStroeInfo() (ok bool, err error) {
 			thingInfo.Number = 100
 		}
 		_ = sql.db.Insert("store", &thingInfo)
-		// 每天上架20本净化书
+		// 每天上架1木竿
 		thingInfo = store{
 			Duration: time.Now().Unix(),
-			Name:     "净化书",
-			Type:     "article",
-			Price:    priceList["净化书"] * discountList["净化书"] / 100,
+			Name:     "初始木竿",
+			Type:     "pole",
+			Price:    priceList["木竿"] + priceList["木竿"]*discountList["木竿"]/100,
+			Other:    "30/0/0/0",
 		}
-		_ = sql.db.Find("store", &thingInfo, "WHERE Name = '净化书'")
-		thingInfo.Number = 20
+		_ = sql.db.Find("store", &thingInfo, "WHERE Name = '初始木竿'")
+		thingInfo.Number++
+		if thingInfo.Number > 5 {
+			thingInfo.Number = 1
+		}
 		_ = sql.db.Insert("store", &thingInfo)
 	}
 	return true, nil

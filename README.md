@@ -402,6 +402,18 @@ print("run[CQ:image,file="+j["img"]+"]")
 
 </details>
 <details>
+  <summary>AnimeTrace 动画/Galgame识别</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/animetrace"`
+
+  基于[AnimeTrace](https://ai.animedb.cn/)API  的识图搜索插件
+  
+  - [x] Gal识图 | Gal识图 [模型名]
+
+  - [x] 动漫识图 | 动漫识图 2 | 动漫识图 [模型名]
+
+</details>
+<details>
   <summary>触发者撤回时也自动撤回</summary>
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/autowithdraw"`
@@ -1558,10 +1570,14 @@ print("run[CQ:image,file="+j["img"]+"]")
 
   - [x] 设置AI聊天触发概率10
   - [x] 设置AI聊天温度80
+  - [x] 设置AI聊天接口类型[OpenAI|OLLaMA|GenAI]
+  - [x] 设置AI聊天(不)支持系统提示词
+  - [x] 设置AI聊天接口地址https://xxx
   - [x] 设置AI聊天密钥xxx
   - [x] 设置AI聊天模型名xxx
-  - [x] 设置AI聊天系统提示词xxx
+  - [x] 查看AI聊天系统提示词
   - [x] 重置AI聊天系统提示词
+  - [x] 设置AI聊天系统提示词xxx
   - [x] 设置AI聊天分隔符`</think>`(留空则清除)
   - [x] 设置AI聊天(不)响应AT
 

@@ -414,6 +414,18 @@ print("run[CQ:image,file="+j["img"]+"]")
 
 </details>
 <details>
+  <summary>aiimage</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/aiimage"`
+
+  - [x] 设置AI画图密钥xxx	
+  - [x] 设置AI画图接口地址https://api.siliconflow.cn/v1/images/generations
+  - [x] 设置AI画图模型名Kwai-Kolors/Kolors
+  - [x] 查看AI画图配置
+  - [x] AI画图 [描述]
+
+</details>
+<details>
   <summary>AIWife</summary>
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/aiwife"`
@@ -632,6 +644,17 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] 组cp[@xxx][@xxx]
 
   - [x] 磕cp大老师 雪乃
+
+</details>
+<details>
+  <summary>奇怪语言加解密</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/crypter"`
+
+  - [x] 齁语加密 [文本] 或 h加密 [文本]
+  - [x] 齁语解密 [密文] 或 h解密 [密文]
+  - [x] fumo加密 [文本]
+  - [x] fumo解密 [文本]
 
 </details>
 <details>
@@ -1496,7 +1519,7 @@ print("run[CQ:image,file="+j["img"]+"]")
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/word_count"`
 
-  - [x] 热词 [群号] [消息数目]|热词 123456 1000
+  - [x] 热词 [消息数目]|热词 1000
 
 </details>
 <details>
@@ -1612,9 +1635,9 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] 设置AI聊天温度80
   - [x] 设置AI聊天接口类型[OpenAI|OLLaMA|GenAI]
   - [x] 设置AI聊天(不)支持系统提示词
-  - [x] 设置AI聊天接口地址https://api.deepseek.com/chat/completions
+  - [x] 设置AI聊天接口地址https://api.siliconflow.cn/v1/chat/completions
   - [x] 设置AI聊天密钥xxx
-  - [x] 设置AI聊天模型名xxx
+  - [x] 设置AI聊天模型名Qwen/Qwen3-8B
   - [x] 查看AI聊天系统提示词
   - [x] 重置AI聊天系统提示词
   - [x] 设置AI聊天系统提示词xxx
@@ -1624,6 +1647,8 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] 设置AI聊天TopP 0.9
   - [x] 设置AI聊天(不)以AI语音输出
   - [x] 查看AI聊天配置 
+  - [x] 重置AI聊天
+  - [x] 群聊总结 [消息数目]|群聊总结 1000
 
 </details>
 <details>

@@ -12,7 +12,7 @@ require (
 	github.com/FloatTech/sqlite v1.7.1
 	github.com/FloatTech/ttl v0.0.0-20240716161252-965925764562
 	github.com/FloatTech/zbpctrl v1.7.0
-	github.com/FloatTech/zbputils v1.7.2-0.20250812085410-2741050f465f
+	github.com/FloatTech/zbputils v1.7.2-0.20250922144137-bf2b9bb6a8d9
 	github.com/RomiChan/syncx v0.0.0-20240418144900-b7402ffdebc7
 	github.com/RomiChan/websocket v1.4.3-0.20220227141055-9b2c6168c9c5
 	github.com/Tnze/go-mc v1.20.2
@@ -22,8 +22,9 @@ require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/fumiama/ahsai v0.1.0
 	github.com/fumiama/cron v1.3.0
-	github.com/fumiama/deepinfra v0.0.0-20250910144855-27a4e697106d
+	github.com/fumiama/deepinfra v0.0.0-20250923161832-8757564fe76c
 	github.com/fumiama/go-base16384 v1.7.0
+	github.com/fumiama/go-onebot-agent v0.0.0-20250922152742-c40bb3512d63
 	github.com/fumiama/go-registry v0.2.7
 	github.com/fumiama/gotracemoe v0.0.3
 	github.com/fumiama/jieba v0.0.0-20221203025406-36c17a10b565
@@ -45,7 +46,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/tidwall/gjson v1.18.0
 	github.com/wcharczuk/go-chart/v2 v2.1.2
-	github.com/wdvxdr1123/ZeroBot v1.8.2-0.20250804063440-ccc03e33ac20
+	github.com/wdvxdr1123/ZeroBot v1.8.2-0.20250921063512-13752a73d444
 	gitlab.com/gomidi/midi/v2 v2.1.7
 	golang.org/x/image v0.24.0
 	golang.org/x/sys v0.30.0
@@ -62,7 +63,7 @@ require (
 	github.com/faiface/beep v1.1.0 // indirect
 	github.com/fumiama/go-simple-protobuf v0.2.0 // indirect
 	github.com/fumiama/gofastTEA v0.0.10 // indirect
-	github.com/fumiama/imgsz v0.0.2 // indirect
+	github.com/fumiama/imgsz v0.0.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.0.4 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect

@@ -34,7 +34,7 @@ import (
 
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/antiabuse" // 违禁词
 
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/chat" // 基础词库
+	// _ "github.com/FloatTech/ZeroBot-Plugin/plugin/chat" // 基础词库
 
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/chatcount" // 聊天时长统计
 
@@ -42,7 +42,7 @@ import (
 
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/airecord" // 群应用：AI声聊
 
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/atri" // ATRI词库
+	// _ "github.com/FloatTech/ZeroBot-Plugin/plugin/atri" // ATRI词库
 
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/manager" // 群管
 
@@ -156,7 +156,7 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/ygocdb"            // 游戏王白鸽API卡查
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/ygotrade"          // 游戏王集换社卡价查询
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/ymgal"             // 月幕galgame
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/yujn"              // 遇见API
+	// _ "github.com/FloatTech/ZeroBot-Plugin/plugin/yujn"              // 遇见API
 
 	// _ "github.com/FloatTech/ZeroBot-Plugin/plugin/wtf"           // 鬼东西
 
@@ -178,13 +178,13 @@ import (
 	//                          vvvvvvvvvvvvvv                          //
 	//                               vvvv                               //
 
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/aichat" // AI聊天
+	// _ "github.com/FloatTech/ZeroBot-Plugin/plugin/aichat" // AI聊天
 
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/curse" // 骂人
+	// _ "github.com/FloatTech/ZeroBot-Plugin/plugin/curse" // 骂人
 
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/thesaurus" // 词典匹配回复
+	// _ "github.com/FloatTech/ZeroBot-Plugin/plugin/thesaurus" // 词典匹配回复
 
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/breakrepeat" // 打断复读
+	// _ "github.com/FloatTech/ZeroBot-Plugin/plugin/breakrepeat" // 打断复读
 
 	//                               ^^^^                               //
 	//                          ^^^^^^^^^^^^^^                          //

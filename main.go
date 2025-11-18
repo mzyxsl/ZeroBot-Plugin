@@ -239,7 +239,7 @@ func init() {
 	save := flag.String("s", "", "Save default config to file and exit.")
 	late := flag.Uint("l", 233, "Response latency (ms).")
 	rsz := flag.Uint("r", 0, "Receiving buffer ring size.")
-	maxpt := flag.Uint("x", 1145141919810, "Max process time (min).")
+	maxpt := flag.Uint("x", 114514, "Max process time (min).")
 	markmsg := flag.Bool("m", false, "Don't mark message as read automatically")
 	flag.BoolVar(&file.SkipOriginal, "mirror", false, "Use mirrored lazy data at first")
 

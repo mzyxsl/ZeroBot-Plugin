@@ -28,6 +28,11 @@ const (
 	disableVideoSummary  = ^enableVideoSummary
 	enableVideoDownload  = int64(0x20)
 	disableVideoDownload = ^enableVideoDownload
+	enableVideoInfo      = int64(0x40)
+	disableVideoInfo     = ^enableVideoInfo
+	// 视频限制类型标志
+	useTimeLimit         = int64(0x80)  // 使用时长限制
+	useSizeLimit         = int64(0x100) // 使用大小限制
 	bilibiliparseReferer = "https://www.bilibili.com"
 	ua                   = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36"
 )
@@ -43,7 +48,12 @@ var (
 	searchArticleRe  = regexp.MustCompile(searchArticle)
 	searchLiveRoomRe = regexp.MustCompile(searchLiveRoom)
 	cachePath        string
+	dataFolder       string // 存储数据文件夹路径
 	cfg              = bz.NewCookieConfig("data/Bilibili/config.json")
+	// 默认视频时长限制（秒）
+	defaultVideoTimeLimit = 480 // 8分钟
+	// 默认视频大小限制（MB）
+	defaultVideoSizeLimit = 100 // 100MB
 )
 
 // 插件主体
@@ -54,6 +64,7 @@ func init() {
 		Help:             "例:- t.bilibili.com/642277677329285174\n- bilibili.com/read/cv17134450\n- bilibili.com/video/BV13B4y1x7pS\n- live.bilibili.com/22603245 ",
 	})
 	cachePath = en.DataFolder() + "cache/"
+	dataFolder = en.DataFolder()
 	_ = os.RemoveAll(cachePath)
 	_ = os.MkdirAll(cachePath, 0755)
 	en.OnRegex(`((b23|acg).tv|bili2233.cn)\\?/[0-9a-zA-Z]+`).SetBlock(true).Limit(limit.LimitByGroup).
@@ -138,6 +149,168 @@ func init() {
 			}
 			ctx.SendChain(message.Text("已", option, "视频上传"))
 		})
+	en.OnRegex(`^(开启|打开|启用|关闭|关掉|禁用)视频信息$`, zero.AdminPermission).SetBlock(true).
+		Handle(func(ctx *zero.Ctx) {
+			gid := ctx.Event.GroupID
+			if gid <= 0 {
+				// 个人用户设为负数
+				gid = -ctx.Event.UserID
+			}
+			option := ctx.State["regex_matched"].([]string)[1]
+			c, ok := ctx.State["manager"].(*ctrl.Control[*zero.Ctx])
+			if !ok {
+				ctx.SendChain(message.Text("找不到服务!"))
+				return
+			}
+			data := c.GetData(ctx.Event.GroupID)
+			switch option {
+			case "开启", "打开", "启用":
+				data |= enableVideoInfo
+			case "关闭", "关掉", "禁用":
+				data &= disableVideoInfo
+			default:
+				return
+			}
+			err := c.SetData(gid, data)
+			if err != nil {
+				ctx.SendChain(message.Text("出错啦: ", err))
+				return
+			}
+			ctx.SendChain(message.Text("已", option, "视频信息"))
+		})
+	// 设置视频时长限制
+	en.OnRegex(`^设置视频时长限制(\d+)(秒|分钟|小时)$`, zero.AdminPermission).SetBlock(true).
+		Handle(func(ctx *zero.Ctx) {
+			gid := ctx.Event.GroupID
+			if gid <= 0 {
+				// 个人用户设为负数
+				gid = -ctx.Event.UserID
+			}
+			durationStr := ctx.State["regex_matched"].([]string)[1]
+			unit := ctx.State["regex_matched"].([]string)[2]
+			c, ok := ctx.State["manager"].(*ctrl.Control[*zero.Ctx])
+			if !ok {
+				ctx.SendChain(message.Text("找不到服务!"))
+				return
+			}
+			data := c.GetData(ctx.Event.GroupID)
+			// 清除大小限制标志，设置时长限制标志
+			data &= ^useSizeLimit
+			data |= useTimeLimit
+
+			// 计算时长（转换为秒）
+			duration := 0
+			fmt.Sscanf(durationStr, "%d", &duration)
+			switch unit {
+			case "秒":
+				// 已经是秒，无需转换
+			case "分钟":
+				duration *= 60
+			case "小时":
+				duration *= 3600
+			}
+
+			// 保存时长限制到配置文件
+			limitConfigPath := dataFolder + "video_limit.json"
+			limitConfig := map[string]interface{}{
+				"type":  "time",
+				"value": duration,
+			}
+			configData, err := json.Marshal(limitConfig)
+			if err != nil {
+				ctx.SendChain(message.Text("配置序列化失败: ", err))
+				return
+			}
+			err = os.WriteFile(limitConfigPath, configData, 0644)
+			if err != nil {
+				ctx.SendChain(message.Text("保存配置失败: ", err))
+				return
+			}
+
+			err = c.SetData(gid, data)
+			if err != nil {
+				ctx.SendChain(message.Text("出错啦: ", err))
+				return
+			}
+
+			// 格式化显示时长
+			displayDuration := ""
+			hours := duration / 3600
+			minutes := (duration % 3600) / 60
+			seconds := duration % 60
+			if hours > 0 {
+				displayDuration = fmt.Sprintf("%d小时%d分钟%d秒", hours, minutes, seconds)
+			} else if minutes > 0 {
+				displayDuration = fmt.Sprintf("%d分钟%d秒", minutes, seconds)
+			} else {
+				displayDuration = fmt.Sprintf("%d秒", seconds)
+			}
+
+			ctx.SendChain(message.Text("已设置视频时长限制为: ", displayDuration))
+		})
+	// 设置视频大小限制
+	en.OnRegex(`^设置视频大小限制(\d+)(MB|GB)$`, zero.AdminPermission).SetBlock(true).
+		Handle(func(ctx *zero.Ctx) {
+			gid := ctx.Event.GroupID
+			if gid <= 0 {
+				// 个人用户设为负数
+				gid = -ctx.Event.UserID
+			}
+			sizeStr := ctx.State["regex_matched"].([]string)[1]
+			unit := ctx.State["regex_matched"].([]string)[2]
+			c, ok := ctx.State["manager"].(*ctrl.Control[*zero.Ctx])
+			if !ok {
+				ctx.SendChain(message.Text("找不到服务!"))
+				return
+			}
+			data := c.GetData(ctx.Event.GroupID)
+			// 清除时长限制标志，设置大小限制标志
+			data &= ^useTimeLimit
+			data |= useSizeLimit
+
+			// 计算大小（转换为MB）
+			size := 0
+			fmt.Sscanf(sizeStr, "%d", &size)
+			switch unit {
+			case "MB":
+				// 已经是MB，无需转换
+			case "GB":
+				size *= 1024
+			}
+
+			// 保存大小限制到配置文件
+			limitConfigPath := dataFolder + "video_limit.json"
+			limitConfig := map[string]interface{}{
+				"type":  "size",
+				"value": size,
+			}
+			configData, err := json.Marshal(limitConfig)
+			if err != nil {
+				ctx.SendChain(message.Text("配置序列化失败: ", err))
+				return
+			}
+			err = os.WriteFile(limitConfigPath, configData, 0644)
+			if err != nil {
+				ctx.SendChain(message.Text("保存配置失败: ", err))
+				return
+			}
+
+			err = c.SetData(gid, data)
+			if err != nil {
+				ctx.SendChain(message.Text("出错啦: ", err))
+				return
+			}
+
+			// 格式化显示大小
+			displaySize := ""
+			if size >= 1024 {
+				displaySize = fmt.Sprintf("%.1fGB", float64(size)/1024)
+			} else {
+				displaySize = fmt.Sprintf("%dMB", size)
+			}
+
+			ctx.SendChain(message.Text("已设置视频大小限制为: ", displaySize))
+		})
 	en.OnRegex(searchVideo).SetBlock(true).Limit(limit.LimitByGroup).Handle(handleVideo)
 	en.OnRegex(searchDynamic).SetBlock(true).Limit(limit.LimitByGroup).Handle(handleDynamic)
 	en.OnRegex(searchArticle).SetBlock(true).Limit(limit.LimitByGroup).Handle(handleArticle)
@@ -154,23 +327,25 @@ func handleVideo(ctx *zero.Ctx) {
 		ctx.SendChain(message.Text("ERROR: ", err))
 		return
 	}
-	msg, err := card.ToVideoMessage()
-	if err != nil {
-		ctx.SendChain(message.Text("ERROR: ", err))
-		return
-	}
 	c, ok := ctx.State["manager"].(*ctrl.Control[*zero.Ctx])
-	if ok && c.GetData(ctx.Event.GroupID)&enableVideoSummary == enableVideoSummary {
-		summaryMsg, err := getVideoSummary(cfg, card)
+	if ok && c.GetData(ctx.Event.GroupID)&enableVideoInfo == enableVideoInfo {
+		msg, err := card.ToVideoMessage()
 		if err != nil {
-			msg = append(msg, message.Text("ERROR: ", err))
-		} else {
-			msg = append(msg, summaryMsg...)
+			ctx.SendChain(message.Text("ERROR: ", err))
+			return
 		}
+		if c.GetData(ctx.Event.GroupID)&enableVideoSummary == enableVideoSummary {
+			summaryMsg, err := getVideoSummary(cfg, card)
+			if err != nil {
+				msg = append(msg, message.Text("ERROR: ", err))
+			} else {
+				msg = append(msg, summaryMsg...)
+			}
+		}
+		ctx.SendChain(msg...)
 	}
-	ctx.SendChain(msg...)
 	if ok && c.GetData(ctx.Event.GroupID)&enableVideoDownload == enableVideoDownload {
-		downLoadMsg, err := getVideoDownload(cfg, card, cachePath)
+		downLoadMsg, err := getVideoDownload(ctx, cfg, card, cachePath)
 		if err != nil {
 			ctx.SendChain(message.Text("ERROR: ", err))
 			return
@@ -246,7 +421,7 @@ func getVideoSummary(cookiecfg *bz.CookieConfig, card bz.Card) (msg []message.Se
 	return
 }
 
-func getVideoDownload(cookiecfg *bz.CookieConfig, card bz.Card, cachePath string) (msg []message.Segment, err error) {
+func getVideoDownload(ctx *zero.Ctx, cookiecfg *bz.CookieConfig, card bz.Card, cachePath string) (msg []message.Segment, err error) {
 	var (
 		data          []byte
 		videoDownload bz.VideoDownload
@@ -279,7 +454,52 @@ func getVideoDownload(cookiecfg *bz.CookieConfig, card bz.Card, cachePath string
 	}
 	headers := fmt.Sprintf("User-Agent: %s\nReferer: %s", ua, bilibiliparseReferer)
 	// 限制最多下载8分钟视频
-	cmd := exec.Command("ffmpeg", "-ss", "0", "-t", "480", "-headers", headers, "-i", videoDownload.Data.Durl[0].URL, "-c", "copy", videoFile)
+	c, ok := ctx.State["manager"].(*ctrl.Control[*zero.Ctx])
+	var limitType string = "time" // 默认使用时长限制
+	var limitValue int = defaultVideoTimeLimit
+
+	if ok {
+		gid := ctx.Event.GroupID
+		if gid <= 0 {
+			// 个人用户设为负数
+			gid = -ctx.Event.UserID
+		}
+		data := c.GetData(gid)
+
+		limitConfigPath := dataFolder + "video_limit.json"
+		if file.IsExist(limitConfigPath) {
+			configData, err := os.ReadFile(limitConfigPath)
+			if err == nil {
+				var limitConfig map[string]interface{}
+				err = json.Unmarshal(configData, &limitConfig)
+				if err == nil {
+					if t, ok := limitConfig["type"].(string); ok {
+						limitType = t
+					}
+					if v, ok := limitConfig["value"].(float64); ok {
+						limitValue = int(v)
+					}
+				}
+			}
+		}
+
+		if data&useTimeLimit == useTimeLimit {
+			limitType = "time"
+		} else if data&useSizeLimit == useSizeLimit {
+			limitType = "size"
+		}
+	}
+
+	var cmd *exec.Cmd
+	if limitType == "time" {
+		// 使用时长限制
+		cmd = exec.Command("ffmpeg", "-ss", "0", "-t", fmt.Sprintf("%d", limitValue), "-headers", headers, "-i", videoDownload.Data.Durl[0].URL, "-c", "copy", videoFile)
+	} else {
+		// 使用大小限制，使用ffmpeg的-fs参数限制输出文件大小
+		// 将MB转换为字节
+		sizeLimitBytes := limitValue * 1024 * 1024
+		cmd = exec.Command("ffmpeg", "-ss", "0", "-headers", headers, "-i", videoDownload.Data.Durl[0].URL, "-c", "copy", "-fs", fmt.Sprintf("%d", sizeLimitBytes), videoFile)
+	}
 	cmd.Stderr = &stderr
 	err = cmd.Run()
 	if err != nil {

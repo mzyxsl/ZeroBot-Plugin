@@ -28,6 +28,8 @@ const (
 	disableVideoSummary  = ^enableVideoSummary
 	enableVideoDownload  = int64(0x20)
 	disableVideoDownload = ^enableVideoDownload
+	enableVideoInfo      = int64(0x40)
+	disableVideoInfo     = ^enableVideoInfo
 	bilibiliparseReferer = "https://www.bilibili.com"
 	ua                   = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36"
 )
@@ -138,6 +140,35 @@ func init() {
 			}
 			ctx.SendChain(message.Text("已", option, "视频上传"))
 		})
+	en.OnRegex(`^(开启|打开|启用|关闭|关掉|禁用)视频信息$`, zero.AdminPermission).SetBlock(true).
+		Handle(func(ctx *zero.Ctx) {
+			gid := ctx.Event.GroupID
+			if gid <= 0 {
+				// 个人用户设为负数
+				gid = -ctx.Event.UserID
+			}
+			option := ctx.State["regex_matched"].([]string)[1]
+			c, ok := ctx.State["manager"].(*ctrl.Control[*zero.Ctx])
+			if !ok {
+				ctx.SendChain(message.Text("找不到服务!"))
+				return
+			}
+			data := c.GetData(ctx.Event.GroupID)
+			switch option {
+			case "开启", "打开", "启用":
+				data |= enableVideoInfo
+			case "关闭", "关掉", "禁用":
+				data &= disableVideoInfo
+			default:
+				return
+			}
+			err := c.SetData(gid, data)
+			if err != nil {
+				ctx.SendChain(message.Text("出错啦: ", err))
+				return
+			}
+			ctx.SendChain(message.Text("已", option, "视频信息"))
+		})
 	en.OnRegex(searchVideo).SetBlock(true).Limit(limit.LimitByGroup).Handle(handleVideo)
 	en.OnRegex(searchDynamic).SetBlock(true).Limit(limit.LimitByGroup).Handle(handleDynamic)
 	en.OnRegex(searchArticle).SetBlock(true).Limit(limit.LimitByGroup).Handle(handleArticle)
@@ -154,21 +185,23 @@ func handleVideo(ctx *zero.Ctx) {
 		ctx.SendChain(message.Text("ERROR: ", err))
 		return
 	}
-	msg, err := card.ToVideoMessage()
-	if err != nil {
-		ctx.SendChain(message.Text("ERROR: ", err))
-		return
-	}
 	c, ok := ctx.State["manager"].(*ctrl.Control[*zero.Ctx])
-	if ok && c.GetData(ctx.Event.GroupID)&enableVideoSummary == enableVideoSummary {
-		summaryMsg, err := getVideoSummary(cfg, card)
+	if ok && c.GetData(ctx.Event.GroupID)&enableVideoInfo == enableVideoInfo {
+		msg, err := card.ToVideoMessage()
 		if err != nil {
-			msg = append(msg, message.Text("ERROR: ", err))
-		} else {
-			msg = append(msg, summaryMsg...)
+			ctx.SendChain(message.Text("ERROR: ", err))
+			return
 		}
+		if c.GetData(ctx.Event.GroupID)&enableVideoSummary == enableVideoSummary {
+			summaryMsg, err := getVideoSummary(cfg, card)
+			if err != nil {
+				msg = append(msg, message.Text("ERROR: ", err))
+			} else {
+				msg = append(msg, summaryMsg...)
+			}
+		}
+		ctx.SendChain(msg...)
 	}
-	ctx.SendChain(msg...)
 	if ok && c.GetData(ctx.Event.GroupID)&enableVideoDownload == enableVideoDownload {
 		downLoadMsg, err := getVideoDownload(cfg, card, cachePath)
 		if err != nil {

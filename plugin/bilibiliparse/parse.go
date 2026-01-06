@@ -47,6 +47,7 @@ var (
 	searchDynamicRe  = regexp.MustCompile(searchDynamic)
 	searchArticleRe  = regexp.MustCompile(searchArticle)
 	searchLiveRoomRe = regexp.MustCompile(searchLiveRoom)
+	errFFmpegMissing = errors.New("未配置ffmpeg")
 	cachePath        string
 	dataFolder       string // 存储数据文件夹路径
 	cfg              = bz.NewCookieConfig("data/Bilibili/config.json")
@@ -347,6 +348,9 @@ func handleVideo(ctx *zero.Ctx) {
 	if ok && c.GetData(ctx.Event.GroupID)&enableVideoDownload == enableVideoDownload {
 		downLoadMsg, err := getVideoDownload(ctx, cfg, card, cachePath)
 		if err != nil {
+			if errors.Is(err, errFFmpegMissing) {
+				return
+			}
 			ctx.SendChain(message.Text("ERROR: ", err))
 			return
 		}
@@ -503,7 +507,8 @@ func getVideoDownload(ctx *zero.Ctx, cookiecfg *bz.CookieConfig, card bz.Card, c
 	cmd.Stderr = &stderr
 	err = cmd.Run()
 	if err != nil {
-		err = errors.Errorf("未配置ffmpeg，%v", stderr)
+		fmt.Printf("[bilibiliparse] ffmpeg执行失败: %v\n", stderr.String())
+		err = errors.Wrap(errFFmpegMissing, stderr.String())
 		return
 	}
 	msg = append(msg, message.Video("file:///"+file.BOTPATH+"/"+videoFile))

@@ -655,6 +655,8 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] 齁语解密 [密文] 或 h解密 [密文]
   - [x] fumo加密 [文本]
   - [x] fumo解密 [文本]
+  - [x] qq加密 [文本]
+  - [x] qq解密 [密文]
 
 </details>
 <details>
@@ -844,6 +846,16 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] [歌单名称]绑定网易云[网易云歌单链接/ID]
   - [x] 下载歌单[网易云歌单链接/ID]到[歌单名称]
   - [x] 解除绑定 [歌单名称]
+
+</details>
+<details>
+  <summary>猜成语</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/handou"`
+
+  - [x] 个人猜成语
+
+  - [x] 团队猜成语
 
 </details>
 <details>
@@ -1633,6 +1645,12 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] 设置AI聊天最大长度4096
   - [x] 设置AI聊天TopP 0.9
   - [x] 设置AI聊天(不)以AI语音输出
+  - [x] 设置AI聊天Agent性格
+  - [x] 查看AI聊天Agent性格
+  - [x] 设置AI聊天Agent性别
+  - [x] 查看AI聊天Agent性别
+  - [x] 重置AI聊天Agent性格性别
+  - [x] 重置AI聊天Agent
   - [x] 查看AI聊天配置 
   - [x] 重置AI聊天
 

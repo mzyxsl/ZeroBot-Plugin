@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"strings"
 
+	"github.com/RomiChan/syncx"
 	"github.com/fumiama/deepinfra"
 	goba "github.com/fumiama/go-onebot-agent"
 	"github.com/sirupsen/logrus"
@@ -52,16 +53,17 @@ func init() {
 			logrus.Warnln("ERROR: cannot get stor")
 			return false
 		}
+		mp := ctx.State[control.StateKeySyncxState].(*syncx.Map[string, any])
+		if _, ok := mp.Load(chat.StateKeyAgentHooked); !ok && !stor.NoAgent() {
+			logrus.Infoln("[aichat] skip agent for ctx has not been hooked by agent")
+			return false
+		}
 		if !(ctx.ExtractPlainText() != "" &&
 			(!stor.NoReplyAt() || (stor.NoReplyAt() && !ctx.Event.IsToMe))) {
 			return false
 		}
 		rate := stor.Rate()
 		if !ctx.Event.IsToMe && rand.Intn(100) >= int(rate) {
-			return false
-		}
-		if chat.AC.Key == "" {
-			logrus.Warnln("ERROR: get extra err: empty key")
 			return false
 		}
 		if ctx.Event.IsToMe {
@@ -76,9 +78,10 @@ func init() {
 		stor := ctx.State[zero.StateKeyPrefixKeep+"aichatcfg_stor__"].(chat.Storage)
 		temperature := stor.Temp()
 		topp, maxn := chat.AC.MParams()
+		mp := ctx.State[control.StateKeySyncxState].(*syncx.Map[string, any])
 
 		logrus.Debugln("[aichat] agent mode test: noagent", stor.NoAgent(), "hasapi", chat.AC.AgentAPI != "", "hasmodel", chat.AC.AgentModelName != "")
-		if !stor.NoAgent() && chat.AC.AgentAPI != "" && chat.AC.AgentModelName != "" {
+		if !stor.NoAgent() && chat.AC.AgentAPI != "" && chat.AC.AgentModelName != "" && chat.AC.Key != "" {
 			logrus.Debugln("[aichat] enter agent mode")
 			x := deepinfra.NewAPI(chat.AC.AgentAPI, string(chat.AC.AgentKey))
 			mod, err := chat.AC.Type.Protocol(chat.AC.AgentModelName, temperature, topp, maxn)
@@ -111,25 +114,44 @@ func init() {
 			ctx.NoTimeout()
 			logrus.Debugln("[aichat] agent set no timeout")
 			hasresp := false
+			// ispuremsg := false
+			// hassavemem := false
 			for i := 0; i < 8; i++ { // 最大运行 8 轮因为问答上下文只有 16
-				reqs := chat.CallAgent(ag, zero.SuperUserPermission(ctx), x, mod, gid, role)
+				reqs := chat.CallAgent(ag, zero.SuperUserPermission(ctx), i+1, x, mod, gid, role)
 				if len(reqs) == 0 {
 					logrus.Debugln("[aichat] agent call got empty response")
 					break
 				}
 				hasresp = true
+				mp.Store(chat.StateKeyAgentTriggered, struct{}{})
 				for _, req := range reqs {
 					if req.Action == goba.SVM { // is a fake action
+						/*if hassavemem {
+							ag.AddTerminus(gid)
+							logrus.Warnln("[aichat] agent call save mem multi times, force inserting EOA")
+							return
+						}
+						hassavemem = true*/
 						continue
 					}
-					resp := ctx.CallAction(req.Action, req.Params)
-					logrus.Infoln("[aichat] agent get resp:", reqs)
+					/*if req.Action == "send_private_msg" || req.Action == "send_group_msg" {
+						if ispuremsg {
+							ag.AddTerminus(gid)
+							logrus.Warnln("[aichat] agent call send msg multi times, force inserting EOA")
+							return
+						}
+						ispuremsg = true
+					}*/
+					logrus.Debugln("[chat] agent triggered", gid, "add requ:", &req)
+					ag.AddRequest(gid, &req)
+					rsp := ctx.CallAction(req.Action, req.Params)
+					logrus.Debugln("[chat] agent triggered", gid, "add resp:", &rsp)
 					ag.AddResponse(gid, &goba.APIResponse{
-						Status:  resp.Status,
-						Data:    json.RawMessage(resp.Data.Raw),
-						Message: resp.Message,
-						Wording: resp.Wording,
-						RetCode: resp.RetCode,
+						Status:  rsp.Status,
+						Data:    json.RawMessage(rsp.Data.Raw),
+						Message: rsp.Message,
+						Wording: rsp.Wording,
+						RetCode: rsp.RetCode,
 					})
 				}
 			}
@@ -166,7 +188,7 @@ func init() {
 				if t == "" {
 					continue
 				}
-				logrus.Infoln("[aichat] 回复内容:", t)
+				logrus.Debugln("[aichat] 回复内容:", t)
 				recCfg := airecord.GetConfig()
 				record := ""
 				if !fastfailnorecord && !stor.NoRecord() {

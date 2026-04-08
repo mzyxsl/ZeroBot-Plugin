@@ -220,9 +220,10 @@ import (
 )
 
 type zbpcfg struct {
-	Z zero.Config        `json:"zero"`
-	W []*driver.WSClient `json:"ws"`
-	S []*driver.WSServer `json:"wss"`
+	Z               zero.Config        `json:"zero"`
+	W               []*driver.WSClient `json:"ws"`
+	S               []*driver.WSServer `json:"wss"`
+	ForceBase64File bool               `json:"force_base64_file"`
 }
 
 var config zbpcfg
@@ -247,6 +248,7 @@ func init() {
 	rsz := flag.Uint("r", 0, "Receiving buffer ring size.")
 	maxpt := flag.Uint("x", 114514, "Max process time (min).")
 	markmsg := flag.Bool("m", false, "Don't mark message as read automatically")
+	fb64 := flag.Bool("fb64", false, "Force to send base64 file.")
 	flag.BoolVar(&file.SkipOriginal, "mirror", false, "Use mirrored lazy data at first")
 
 	flag.Parse()
@@ -310,6 +312,7 @@ func init() {
 		MarkMessage:    !*markmsg,
 		Driver:         []zero.Driver{config.W[0]},
 	}
+	config.ForceBase64File = *fb64
 
 	if *save != "" {
 		f, err := os.Create(*save)
@@ -330,6 +333,7 @@ func main() {
 	if !strings.Contains(runtime.Version(), "go1.2") { // go1.20之前版本需要全局 seed，其他插件无需再 seed
 		rand.Seed(time.Now().UnixNano()) //nolint: staticcheck
 	}
+	message.SetForceBase64File(config.ForceBase64File)
 	// 帮助
 	zero.OnFullMatchGroup([]string{"help", "/help", ".help", "菜单"}, zero.OnlyToMe).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {

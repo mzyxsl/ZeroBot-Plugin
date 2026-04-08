@@ -1,7 +1,7 @@
 name: 发行版
 on:
   workflow_run:
-    workflows: [最新版]
+    workflows: [PushLint]
     types:
       - completed
 
@@ -18,7 +18,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@master
         with:
-          go-version: '1.25'
+          go-version: '1.26'
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@master

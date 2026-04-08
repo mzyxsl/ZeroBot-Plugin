@@ -11,7 +11,7 @@ on:
       go-version:
         required: false
         type: string
-        default: '^1.25'
+        default: '^1.26'
       fetch-depth:
         required: false
         type: number
@@ -46,6 +46,7 @@ jobs:
         uses: golangci/golangci-lint-action@master
         with:
           version: latest
+          install-mode: goinstall
 
       - name: Commit back
         if: ${{ inputs.commit_back }}

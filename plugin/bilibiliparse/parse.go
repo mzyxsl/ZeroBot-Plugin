@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -200,8 +201,11 @@ func init() {
 			data |= useTimeLimit
 
 			// 计算时长（转换为秒）
-			duration := 0
-			fmt.Sscanf(durationStr, "%d", &duration)
+			duration, err := strconv.Atoi(durationStr)
+			if err != nil {
+				ctx.SendChain(message.Text("视频时长格式无效: ", err))
+				return
+			}
 			switch unit {
 			case "秒":
 				// 已经是秒，无需转换
@@ -239,11 +243,12 @@ func init() {
 			hours := duration / 3600
 			minutes := (duration % 3600) / 60
 			seconds := duration % 60
-			if hours > 0 {
+			switch {
+			case hours > 0:
 				displayDuration = fmt.Sprintf("%d小时%d分钟%d秒", hours, minutes, seconds)
-			} else if minutes > 0 {
+			case minutes > 0:
 				displayDuration = fmt.Sprintf("%d分钟%d秒", minutes, seconds)
-			} else {
+			default:
 				displayDuration = fmt.Sprintf("%d秒", seconds)
 			}
 
@@ -270,8 +275,11 @@ func init() {
 			data |= useSizeLimit
 
 			// 计算大小（转换为MB）
-			size := 0
-			fmt.Sscanf(sizeStr, "%d", &size)
+			size, err := strconv.Atoi(sizeStr)
+			if err != nil {
+				ctx.SendChain(message.Text("视频大小格式无效: ", err))
+				return
+			}
 			switch unit {
 			case "MB":
 				// 已经是MB，无需转换
@@ -463,8 +471,8 @@ func getVideoDownload(ctx *zero.Ctx, cookiecfg *bz.CookieConfig, card bz.Card, c
 	headers := fmt.Sprintf("User-Agent: %s\nReferer: %s", ua, bilibiliparseReferer)
 	// 限制最多下载8分钟视频
 	c, ok := ctx.State["manager"].(*ctrl.Control[*zero.Ctx])
-	var limitType string = "time" // 默认使用时长限制
-	var limitValue int = defaultVideoTimeLimit
+	limitType := "time" // 默认使用时长限制
+	limitValue := defaultVideoTimeLimit
 
 	if ok {
 		gid := ctx.Event.GroupID
@@ -473,28 +481,36 @@ func getVideoDownload(ctx *zero.Ctx, cookiecfg *bz.CookieConfig, card bz.Card, c
 			gid = -ctx.Event.UserID
 		}
 		data := c.GetData(gid)
+		configuredType := ""
 
 		limitConfigPath := dataFolder + "video_limit.json"
 		if file.IsExist(limitConfigPath) {
 			configData, err := os.ReadFile(limitConfigPath)
 			if err == nil {
-				var limitConfig map[string]interface{}
-				err = json.Unmarshal(configData, &limitConfig)
-				if err == nil {
-					if t, ok := limitConfig["type"].(string); ok {
-						limitType = t
-					}
-					if v, ok := limitConfig["value"].(float64); ok {
-						limitValue = int(v)
-					}
+				var limitConfig struct {
+					Type  string `json:"type"`
+					Value int    `json:"value"`
+				}
+				if err = json.Unmarshal(configData, &limitConfig); err == nil &&
+					(limitConfig.Type == "time" || limitConfig.Type == "size") && limitConfig.Value > 0 {
+					configuredType = limitConfig.Type
+					limitType = limitConfig.Type
+					limitValue = limitConfig.Value
 				}
 			}
 		}
 
-		if data&useTimeLimit == useTimeLimit {
+		switch {
+		case data&useTimeLimit == useTimeLimit:
 			limitType = "time"
-		} else if data&useSizeLimit == useSizeLimit {
+			if configuredType != "time" {
+				limitValue = defaultVideoTimeLimit
+			}
+		case data&useSizeLimit == useSizeLimit:
 			limitType = "size"
+			if configuredType != "size" {
+				limitValue = defaultVideoSizeLimit
+			}
 		}
 	}
 

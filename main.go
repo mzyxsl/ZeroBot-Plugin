@@ -183,7 +183,6 @@ import (
 	//                          vvvvvvvvvvvvvv                          //
 	//                               vvvv                               //
 
-
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/aichatcfg" // AI聊天配置
 
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/aichat" // AI聊天

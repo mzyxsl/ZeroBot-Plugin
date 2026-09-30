@@ -1,6 +1,7 @@
 # ZeroBot-Plugin-Gif
 [ZeroBot QQ机器人](https://github.com/wdvxdr1123/ZeroBot)插件，可以制作各种沙雕gif图
 > 素材包地址: https://gitcode.net/anto_july/imagematerials
+> “射”素材来自 [meme-generator-contrib](https://github.com/MemeCrafters/meme-generator-contrib/tree/main/memes/shoot)，首次使用时自动缓存。
 
 ## 触发方式
 1. [指令词]+[qq号] 如：爬123456
@@ -8,6 +9,7 @@
 3. [指令词]+[艾特] 如：爬@小H
 
 ## 指令列表
+- [x] 射|🐍
 - [x] 爬
 - [x] 冲
 - [x] 摸

@@ -14,6 +14,39 @@ import (
 	"github.com/FloatTech/zbputils/img/text"
 )
 
+const shootMaterialBaseURL = "https://raw.githubusercontent.com/MemeCrafters/meme-generator-contrib/8547f2e5718bfbb3328d700fe2c21d2ec5962500/memes/shoot/images/"
+
+// shoot 射
+func shoot(cc *context, value ...string) (string, error) {
+	_ = value
+	const frameCount = 13
+	var wg sync.WaitGroup
+	var errwg error
+	var m sync.Mutex
+	paths := dlrangeFrom("shoot", frameCount, shootMaterialBaseURL, &wg, func(err error) {
+		m.Lock()
+		errwg = err
+		m.Unlock()
+	})
+	base, err := factory.LoadFirstFrame(cc.headimgsdir[0], 160, 97)
+	if err != nil {
+		return "", err
+	}
+	wg.Wait()
+	if errwg != nil {
+		return "", errwg
+	}
+	frames, err := loadFirstFrames(paths, frameCount)
+	if err != nil {
+		return "", err
+	}
+	result := make([]*image.NRGBA, frameCount)
+	for i, frame := range frames {
+		result[i] = frame.InsertBottom(base.Image(), 0, 0, 0, 0).Image()
+	}
+	return factory.GIF2Base64(factory.MergeGif(15, result))
+}
+
 // mo 摸
 func mo(cc *context, value ...string) (string, error) {
 	_ = value

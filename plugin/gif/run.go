@@ -17,6 +17,8 @@ var (
 	cmd      = make([]string, 0)
 	datapath string
 	cmdMap   = map[string]func(cc *context, args ...string) (string, error){
+		"射":      shoot,
+		"🐍":      shoot,
 		"搓":      cuo,
 		"冲":      xqe,
 		"摸":      mo,
@@ -130,6 +132,7 @@ func init() { // 插件主体
 		DisableOnDefault: false,
 		Brief:            "制图",
 		Help: "下为制图命令:\n" +
+			"- 射|🐍\n" +
 			"- 搓|- 冲|- 摸|-拍|- 丢|- 吃|- 敲|- 啃|- 蹭|- 爬|- 撕\n" +
 			"- 吸|- 嗦|- 扔|- 锤|- 紧贴|紧紧贴着|- 转|- 抬棺|- 远离\n" +
 			"- 揍|- 吞|- 膜拜|- 诶嘿|- 2蹭|- 你犯法了|- 砰|- 注意力涣散\n" +

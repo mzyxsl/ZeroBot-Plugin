@@ -86,6 +86,51 @@ func dlrange(prefix string, end int, wg *sync.WaitGroup, exit func(error)) []str
 	return c
 }
 
+// dlrangeFrom downloads a range of PNG frames from an alternate material
+// source. The files are cached in the same materials directory as the other
+// GIF assets.
+func dlrangeFrom(prefix string, end int, baseURL string, wg *sync.WaitGroup, exit func(error)) []string {
+	if file.IsNotExist(datapath + `materials/` + prefix) {
+		if err := os.MkdirAll(datapath+`materials/`+prefix, 0755); err != nil {
+			exit(err)
+			return nil
+		}
+	}
+	c := make([]string, end)
+	for i := range c {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			target := datapath + `materials/` + prefix + `/` + strconv.Itoa(i) + `.png`
+			if file.IsNotExist(target) {
+				data, err := web.GetData(baseURL + strconv.Itoa(i) + `.png`)
+				if err != nil {
+					_ = os.Remove(target)
+					exit(err)
+					return
+				}
+				f, err := os.Create(target)
+				if err != nil {
+					exit(err)
+					return
+				}
+				_, writeErr := f.Write(data)
+				_ = f.Close()
+				if writeErr != nil {
+					_ = os.Remove(target)
+					exit(writeErr)
+					return
+				}
+				logrus.Debugln("[gif] dl", prefix+"/"+strconv.Itoa(i)+".png", "to", target, "succeeded")
+			} else {
+				logrus.Debugln("[gif] dl", prefix+"/"+strconv.Itoa(i)+".png", "exists at", target)
+			}
+			c[i] = target
+		}(i)
+	}
+	return c
+}
+
 // 新的上下文
 func newContext(user int64, atUser int64) *context {
 	c := new(context)

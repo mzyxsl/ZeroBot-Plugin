@@ -4,6 +4,7 @@ import (
 	"errors"
 	"image"
 	"image/color"
+	"image/draw"
 	"sync"
 
 	"github.com/FloatTech/floatbox/file"
@@ -28,10 +29,24 @@ func shoot(cc *context, value ...string) (string, error) {
 		errwg = err
 		m.Unlock()
 	})
-	base, err := factory.LoadFirstFrame(cc.headimgsdir[0], 160, 97)
+	base, err := factory.LoadFirstFrame(cc.headimgsdir[0], 0, 0)
 	if err != nil {
 		return "", err
 	}
+	bounds := base.Image().Bounds()
+	srcW, srcH := bounds.Dx(), bounds.Dy()
+	if srcW == 0 || srcH == 0 {
+		return "", errors.New("图片尺寸无效")
+	}
+	baseW, baseH := 160, 97
+	if baseW*srcH <= baseH*srcW {
+		baseH = srcH * baseW / srcW
+	} else {
+		baseW = srcW * baseH / srcH
+	}
+	resized := factory.Size(base.Image(), baseW, baseH).Image()
+	canvas := image.NewNRGBA(image.Rect(0, 0, 160, 97))
+	draw.Draw(canvas, image.Rect((160-baseW)/2, (97-baseH)/2, (160+baseW)/2, (97+baseH)/2), resized, image.Point{}, draw.Over)
 	wg.Wait()
 	if errwg != nil {
 		return "", errwg
@@ -42,7 +57,7 @@ func shoot(cc *context, value ...string) (string, error) {
 	}
 	result := make([]*image.NRGBA, frameCount)
 	for i, frame := range frames {
-		result[i] = frame.InsertBottom(base.Image(), 0, 0, 0, 0).Image()
+		result[i] = frame.InsertBottom(canvas, 0, 0, 0, 0).Image()
 	}
 	return factory.GIF2Base64(factory.MergeGif(15, result))
 }

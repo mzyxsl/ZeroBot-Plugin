@@ -11,7 +11,7 @@ on:
       go-version:
         required: false
         type: string
-        default: '^1.26'
+        default: '1.26.x'
       fetch-depth:
         required: false
         type: number
@@ -43,10 +43,9 @@ jobs:
           go mod tidy
 
       - name: Run Lint
-        uses: golangci/golangci-lint-action@master
+        uses: golangci/golangci-lint-action@v9
         with:
-          version: latest
-          install-mode: goinstall
+          version: v2.10.1
 
       - name: Commit back
         if: ${{ inputs.commit_back }}

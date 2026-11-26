@@ -35,14 +35,15 @@ func getValue(text string) []string {
 		if err == nil {
 			resp.Body.Close()
 			json := gjson.ParseBytes(body)
-			res := make([]string, 0)
 			var jsonPath string
 			if json.Get("0.trans").Exists() {
 				jsonPath = "0.trans"
 			} else {
 				jsonPath = "0.inputting"
 			}
-			for _, value := range json.Get(jsonPath).Array() {
+			values := json.Get(jsonPath).Array()
+			res := make([]string, 0, len(values))
+			for _, value := range values {
 				res = append(res, value.String())
 			}
 			return res

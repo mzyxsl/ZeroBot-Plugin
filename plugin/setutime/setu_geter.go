@@ -130,10 +130,12 @@ func init() { // 插件主体
 	// 查询数据库涩图数量
 	engine.OnFullMatch(">setu status", getdb).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
-			state := []string{"[SetuTime]"}
 			pool.dbmu.RLock()
 			defer pool.dbmu.RUnlock()
-			for _, imgtype := range pool.List() {
+			imgtypes := pool.List()
+			state := make([]string, 1, 1+4*len(imgtypes))
+			state[0] = "[SetuTime]"
+			for _, imgtype := range imgtypes {
 				num, err := pool.db.Count(imgtype)
 				if err != nil {
 					num = 0

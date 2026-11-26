@@ -1495,12 +1495,11 @@ func alwaysDoGif(cc *context, value ...string) (string, error) {
 	face, err = factory.LoadAllTrueFrames(cc.headimgsdir[0], 500, 500)
 	if err != nil {
 		// 载入失败尝试载入第一帧
-		face = nil
 		first, err := factory.LoadFirstFrame(cc.headimgsdir[0], 500, 500)
 		if err != nil {
 			return "", err
 		}
-		face = append(face, factory.NewFactory(first.Image()))
+		face = []*factory.Factory{factory.NewFactory(first.Image())}
 	}
 	canvas := gg.NewContext(500, 600)
 	canvas.SetColor(color.Black)

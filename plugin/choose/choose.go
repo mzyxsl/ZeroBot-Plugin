@@ -23,7 +23,7 @@ func init() {
 }
 func handle(ctx *zero.Ctx) {
 	rawOptions := strings.Split(ctx.State["args"].(string), "还是")
-	var options = make([]string, 0)
+	var options = make([]string, 0, len(rawOptions))
 	for count, option := range rawOptions {
 		options = append(options, strconv.Itoa(count+1)+", "+option)
 	}

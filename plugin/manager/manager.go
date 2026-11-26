@@ -50,6 +50,7 @@ const (
 		"- 列出所有提醒\n" +
 		"- 翻牌\n" +
 		"- 赞我\n" +
+		"- (机器人主人) 开启非好友点赞 | 关闭非好友点赞 | 查看非好友点赞\n" +
 		"- 群签到\n" +
 		"- 对信息回复: 回应表情 [表情]\n" +
 		"- 设置欢迎语XXX 可选添加 [{at}] [{nickname}] [{avatar}] [{uid}] [{gid}] [{groupname}]\n" +
@@ -67,6 +68,13 @@ var (
 	db    sql.Sqlite
 	clock timer.Clock
 )
+
+const nonFriendLikeFlag int64 = 1 << 0
+
+func isNonFriendLikeEnabled(ctx *zero.Ctx) bool {
+	c, ok := ctx.State["manager"].(*ctrl.Control[*zero.Ctx])
+	return ok && c.GetData(0)&nonFriendLikeFlag != 0
+}
 
 func init() { // 插件主体
 	engine := control.AutoRegister(&ctrl.Options[*zero.Ctx]{
@@ -399,12 +407,46 @@ func init() { // 插件主体
 					break
 				}
 			}
-			if !flag {
+			if !flag && !isNonFriendLikeEnabled(ctx) {
 				// ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text("不加好友不给赞!"))
 				return
 			}
 			ctx.SendLike(ctx.Event.UserID, 10)
 			ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text("给你赞了10下哦，记得回我~"))
+		})
+	// 非好友点赞开关为机器人全局设置，仅主人可在群聊或私聊中修改或查看。
+	engine.OnRegex(`^(开启|关闭)非好友点赞$`, zero.SuperUserPermission).SetBlock(true).
+		Handle(func(ctx *zero.Ctx) {
+			c, ok := ctx.State["manager"].(*ctrl.Control[*zero.Ctx])
+			if !ok {
+				ctx.SendChain(message.Text("找不到服务!"))
+				return
+			}
+			data := c.GetData(0)
+			option := ctx.State["regex_matched"].([]string)[1]
+			if option == "开启" {
+				data |= nonFriendLikeFlag
+			} else {
+				data &^= nonFriendLikeFlag
+			}
+			if err := c.SetData(0, data); err != nil {
+				ctx.SendChain(message.Text("出错啦: ", err))
+				return
+			}
+			ctx.SendChain(message.Text("已", option, "非好友点赞"))
+		})
+	engine.OnFullMatch("查看非好友点赞", zero.SuperUserPermission).SetBlock(true).
+		Handle(func(ctx *zero.Ctx) {
+			c, ok := ctx.State["manager"].(*ctrl.Control[*zero.Ctx])
+			if !ok {
+				ctx.SendChain(message.Text("找不到服务!"))
+				return
+			}
+			if c.GetData(0)&nonFriendLikeFlag != 0 {
+				ctx.SendChain(message.Text("非好友点赞已开启"))
+				return
+			}
+			ctx.SendChain(message.Text("非好友点赞已关闭"))
 		})
 	// 群签到
 	engine.OnFullMatch("群签到", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByUser).

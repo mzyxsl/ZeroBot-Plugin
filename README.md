@@ -266,7 +266,7 @@ zerobot [-h] [-m] [-n nickname] [-t token] [-u url] [-g url] [-p prefix] [-d|w] 
 
   - [x] 翻牌
   
-  - [x] 赞我
+  - [x] 赞我（默认仅好友；机器人主人可在群聊或私聊开启、关闭非好友点赞）
   
   - [x] 群签到
 
